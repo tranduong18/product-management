@@ -1,21 +1,15 @@
 const express = require("express");
-const { route } = require("./home.route");
 const router = express.Router();
 
-router.get("/", (req, res) => {
-    res.render("client/pages/products/index");
-});  
+const controller = require("../../controllers/client/product.controller");
 
-// router.post("/create", (req, res) => {
-//     res.render("client/pages/products/create");
-// });  
 
-// router.patch("/edit", (req, res) => {
-//     res.render("client/pages/products/edit");
-// });  
+router.get("/", controller.index);  
 
-// router.get("/detail", (req, res) => {
-//     res.render("client/pages/products/detail");
-// });  
+// router.post("/create", controller.create);  
+
+// router.patch("/edit", controller.edit);  
+
+// router.get("/detail", controller.detail);  
 
 module.exports = router;

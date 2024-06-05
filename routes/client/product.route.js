@@ -4,12 +4,6 @@ const router = express.Router();
 const controller = require("../../controllers/client/product.controller");
 
 
-router.get("/", controller.index);  
-
-// router.post("/create", controller.create);  
-
-// router.patch("/edit", controller.edit);  
-
-// router.get("/detail", controller.detail);  
+router.get("/", controller.index);    
 
 module.exports = router;

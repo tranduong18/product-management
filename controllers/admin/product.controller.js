@@ -37,7 +37,7 @@ module.exports.index = async(req, res) => {
     // Phân trang
     const pagination = {
         currentPage: 1,
-        limitItems: 5
+        limitItems: 4
     };
 
     if(req.query.page){

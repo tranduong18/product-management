@@ -86,7 +86,7 @@ if (listButtonChangeStatus.length > 0) {
 
 // Check Item
 const inputCheckAll = document.querySelector("input[name='checkAll']");
-if(inputCheckAll){
+if (inputCheckAll) {
     const listInputCheckItem = document.querySelectorAll("input[name='checkItem']");
 
     // Bắt sự kiên click vào nút checkAll
@@ -100,14 +100,54 @@ if(inputCheckAll){
     listInputCheckItem.forEach(inputCheckItem => {
         inputCheckItem.addEventListener("click", () => {
             const listInputCheckItemChecked = document.querySelectorAll("input[name='checkItem']:checked");
-            
-            if(listInputCheckItem.length == listInputCheckItemChecked.length){
+
+            if (listInputCheckItem.length == listInputCheckItemChecked.length) {
                 inputCheckAll.checked = true;
-            }
-            else{
+            } else {
                 inputCheckAll.checked = false;
             }
         });
     });
 }
 // End Check Item
+
+// Box Actions
+const boxActions = document.querySelector("[box-actions]");
+if (boxActions) {
+    const button = boxActions.querySelector("button");
+
+    button.addEventListener("click", () => {
+        const select = boxActions.querySelector("select");
+        const status = select.value;
+
+        const listInputChecked = document.querySelectorAll("input[name='checkItem']:checked");
+        const ids = [];
+        listInputChecked.forEach(input => {
+            ids.push(input.value);
+        });
+
+        if (status != "" && ids.length > 0) {
+            const dataChangeMulti = {
+                status: status,
+                ids: ids
+            };
+
+            fetch("/admin/products/change-multi", {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(dataChangeMulti),
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.code == 200) {
+                        window.location.reload();
+                    }
+                })
+        } else {
+            alert("Hành động và checkItem phải được chọn");
+        }
+    });
+}
+// End Box Actions

@@ -211,3 +211,20 @@ if(showAlert){
     }, time);
 }
 // End show-alert
+
+// Upload Image
+const uploadImage = document.querySelector("[upload-image]");
+console.log(uploadImage);
+if(uploadImage){
+    const uploadImageInput = uploadImage.querySelector("[upload-image-input]");
+    const uploadImagePreview = uploadImage.querySelector("[upload-image-preview]");
+
+    uploadImageInput.addEventListener("change", () => {
+        const file = uploadImageInput.files[0];
+        console.log(file);
+        if(file){
+            uploadImagePreview.src = URL.createObjectURL(file);
+        }
+    });
+}
+// End Upload Image

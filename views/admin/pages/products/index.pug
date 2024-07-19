@@ -72,6 +72,10 @@ block main
                   button(link=`/${prefixAdmin}/products/change-status/active/${item.id}` class="badge badge-danger" button-change-status) Dừng hoạt động
               td
                 a(
+                  class="btn btn-info btn-sm"
+                  href=`/${prefixAdmin}/products/detail/${item.id}`
+                ) Chi tiết
+                a(
                   class="btn btn-warning btn-sm"
                   href=`/${prefixAdmin}/products/edit/${item.id}`
                 ) Sửa

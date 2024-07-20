@@ -12,7 +12,7 @@ module.exports.index = async(req, res) => {
     for(const item of products){
         item.priceNew = ((1 - item.discountPercentage/100) * item.price).toFixed(0);
     }
-    console.log(products);
+    // console.log(products);
 
     res.render("client/pages/products/index", {
         pageTitle: "Danh sách sản phẩm",

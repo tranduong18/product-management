@@ -9,7 +9,7 @@ module.exports.index = async (req, res) => {
         deleted: false
     });
 
-    console.log(records);
+    // console.log(records);
 
     res.render("admin/pages/products-category/index", {
         pageTitle: "Danh mục sản phẩm",

@@ -16,10 +16,10 @@ module.exports.index = async (req, res) => {
             const productInfo = await Product.findOne({
                 _id: product.productId
             }).select("title thumbnail slug price discountPercentage");
-            productInfo.priceNew = ((1 - productInfo.discountPercentage/100) * productInfo.price).toFixed(0);
+            productInfo.priceNew = ((1 - productInfo.discountPercentage/100) * productInfo.price).toFixed(2);
             product.productInfo = productInfo;
-            product.totalPrice = (parseInt(productInfo.priceNew * product.quantity)).toFixed(0);
-            cart.totalPrice += parseInt(product.totalPrice);
+            product.totalPrice = (parseFloat(productInfo.priceNew * product.quantity)).toFixed(2);
+            cart.totalPrice += parseFloat(product.totalPrice);
         }        
     }
 

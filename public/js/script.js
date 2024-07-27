@@ -1,3 +1,15 @@
+// show-alert
+const showAlert = document.querySelector("[show-alert]");
+if(showAlert){
+    let time = showAlert.getAttribute("show-alert") || 3000;
+    time = parseInt(time);
+
+    setTimeout(() => {
+        showAlert.classList.add("hidden");
+    }, time);
+}
+// End show-alert
+
 // Cập nhật số lượng sản phẩm trong giỏ hàng
 const listInputQuantity = document.querySelectorAll("[cart] input[name='quantity']");
 if(listInputQuantity){
@@ -12,7 +24,4 @@ if(listInputQuantity){
         });
     });
 }
-
-
-
 // Hết Cập nhật số lượng sản phẩm trong giỏ hàng

@@ -9,6 +9,12 @@ const upload = multer();
 
 router.get("/", controller.index);
 
+router.patch("/change-status/:statusChange/:id", controller.changeStatus);
+
+router.patch("/change-multi", controller.changeMulti);
+
+router.patch("/change-position/:id", controller.changePosition);
+
 router.get("/create", controller.create);
 
 router.post(
@@ -26,5 +32,9 @@ router.patch(
     uploadCloud.uploadSingle,
     controller.editPatch
 );
+
+router.get("/detail/:id", controller.detail);
+
+router.patch("/delete/:id", controller.deletePatch);
 
 module.exports = router;

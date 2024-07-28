@@ -2,18 +2,71 @@ const ProductCategory = require("../../models/product-category.model");
 const systemConfig = require("../../config/system");
 
 const createTreeHelper = require("../../helpers/createTree.helper");
+const paginationHelper = require("../../helpers/pagination.helper");
 
 // [GET] /admin/products-category/
 module.exports.index = async (req, res) => {
-    const records = await ProductCategory.find({
-        deleted: false
-    });
+    const find = {
+      deleted: false
+    };
+
+    const filterStatus = [
+      {
+        label: "Tất cả",
+        value: ""
+      },
+      {
+        label: "Hoat động",
+        value: "active"
+      },
+      {
+        label: "Dừng hoạt động",
+        value: "inactive"
+      }
+    ];
+
+    if(req.query.status){
+      find.status = req.query.status;
+    }
+
+    // Tìm kiếm
+    let keyword = "";
+    if(req.query.keyword){
+      const regex = new RegExp(req.query.keyword, "i");
+      find.title = regex;
+      keyword = req.query.keyword;
+    }
+    // Hết tìm kiếm
+
+    //  Phân trang
+    const pagination = await paginationHelper.productCategory(req, find);
+    // Hết phân trang
+
+    // Sắp xếp
+    const sort = {};
+
+    if(req.query.sortKey && req.query.sortValue){
+      sort[req.query.sortKey] = req.query.sortValue;
+    }
+    else{
+      sort.position = "asc";
+    }
+    // Hết Sắp xếp
+
+    const records = await ProductCategory
+    .find(find)
+    .limit(pagination.limitItems)
+    .skip(pagination.skip)
+    .sort(sort);
 
     // console.log(records);
 
     res.render("admin/pages/products-category/index", {
         pageTitle: "Danh mục sản phẩm",
-        records: records
+        records: records,
+        filterStatus: filterStatus,
+        keyword: keyword,
+        pagination: pagination
     });
 }
 
@@ -89,3 +142,119 @@ module.exports.editPatch = async (req, res) => {
     res.redirect("back");
 }
 
+// [PATCH] /admin/products-category/delete/:id
+module.exports.deletePatch = async (req, res) => {
+  const id = req.params.id;
+  
+  await ProductCategory.updateOne({
+    _id: id
+  },{
+    deleted: true,
+    deletedBy: res.locals.account.id
+  });
+
+  req.flash("success", "Xóa danh mục thành công!");
+
+  res.json({
+    code: 200
+  });
+}
+
+// [GET] /admin/products-category/detail/:id
+module.exports.detail = async (req, res) => {
+    try {
+      const id = req.params.id;
+  
+      const category = await ProductCategory.findOne({
+        _id: id,
+        deleted: false
+      });
+  
+      if(category) {
+        if(category.parent_id != ''){
+            const parentCategory = await ProductCategory.findOne({
+                _id: category.parent_id,
+                deleted: false
+            });
+            categoryParent = parentCategory.title;
+        }
+        else{
+            categoryParent = "";
+        }
+
+        res.render("admin/pages/products-category/detail", {
+          pageTitle: "Chi tiết danh mục sản phẩm",
+          category: category,
+          categoryParent: categoryParent
+        });
+      } else {
+        res.redirect(`/${systemConfig.prefixAdmin}/products-category`);
+      }
+    } catch (error) {
+      res.redirect(`/${systemConfig.prefixAdmin}/products-category`);
+    }
+}
+
+// [PATCH] /admin/products-category/change-status/:statusChange/:id
+module.exports.changeStatus = async (req, res) => {
+  const { id, statusChange } = req.params;
+
+  await ProductCategory.updateOne({
+    _id: id
+  }, {
+    status: statusChange
+  });
+
+  req.flash('success', 'Cập nhật trạng thái thành công!');
+
+  res.json({
+    code: 200
+  });
+}
+
+// [PATCH] /admin/products-category/change-position/:id
+module.exports.changePosition = async (req, res) => {
+  const id = req.params.id;
+  const position = req.body.position;
+
+  await ProductCategory.updateOne({
+    _id: id
+  }, {
+    position: position
+  });
+
+  res.json({
+    code: 200
+  });
+}
+
+// [PATCH] /admin/products-category/change-multi
+module.exports.changeMulti = async (req, res) => {
+  const { status, ids } = req.body;
+
+  switch (status) {
+    case "active":
+    case "inactive":
+      await ProductCategory.updateMany({
+        _id: ids
+      }, {
+        status: status
+      });
+      break;
+    case "delete":
+      await Product.updateMany({
+        _id: ids
+      }, {
+        deleted: true
+      });
+      break;
+    default:
+      break;
+  }
+
+  req.flash("success", "Cập nhật trạng thái thành công!");
+
+  res.json({
+    code: 200
+  });
+}

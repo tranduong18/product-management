@@ -42,7 +42,7 @@ module.exports.index = async (req, res) => {
   // Hết Tìm kiếm
 
   // Phân trang
-  const pagination = await paginationHelper(req, find);
+  const pagination = await paginationHelper.product(req, find);
   // Hết Phân trang
 
   // Sắp xếp

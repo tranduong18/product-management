@@ -4,6 +4,7 @@ const router = express.Router();
 
 const controller = require("../../controllers/admin/account.controller");
 const uploadCloud = require("../../middlewares/admin/uploadCloud.middleware");
+const validate = require("../../validates/admin/account.validate");
 
 const upload = multer();
 
@@ -14,6 +15,7 @@ router.get("/create", controller.create);
 router.post(
     "/create",
     upload.single('avatar'),
+    validate.createPost,
     uploadCloud.uploadSingle,
     controller.createPost
 );
@@ -23,6 +25,7 @@ router.get("/edit/:id", controller.edit);
 router.patch(
     "/edit/:id",
     upload.single('avatar'),
+    validate.editPatch,
     uploadCloud.uploadSingle,
     controller.editPatch
 );

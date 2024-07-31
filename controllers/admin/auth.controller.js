@@ -32,12 +32,13 @@ module.exports.loginPost = async (req, res) => {
     }
 
     if(account.status != "active"){
-        req.flash("error", "Tài khảon đang bị khóa!");
+        req.flash("error", "Tài khoản đang bị khóa!");
         res.redirect("back");
         return;
     }
 
     res.cookie("token", account.token);
+    req.flash("success", "Đăng nhập thành công!");
     res.redirect(`/${systemConfig.prefixAdmin}/dashboard`);
 }
 

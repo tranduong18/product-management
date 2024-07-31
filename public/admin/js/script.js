@@ -158,17 +158,22 @@ if(boxActions) {
 const listButtonDelete = document.querySelectorAll("[button-delete]");
 if(listButtonDelete.length > 0){
     listButtonDelete.forEach(button => {
-        button.addEventListener("click", () => {
-            const link = button.getAttribute("button-delete");
+        button.addEventListener("click", (event) => {
+            event.preventDefault();
 
-            fetch(link, {
-                method: "PATCH"
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.code == 200){
-                    window.location.reload();                }
-            })
+            const link = button.getAttribute("button-delete");
+            const confirmed = confirm("Bạn có chắc chắn muốn xóa không?");
+
+            if(confirmed){
+                fetch(link, {
+                    method: "PATCH"
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.code == 200){
+                        window.location.reload();                }
+                })
+            }
         });
     });
 }
@@ -315,3 +320,60 @@ if(tablePermissions){
     });
 }
 // Hết Phân quyền
+
+// Khôi phục bên trang thùng rác
+const listButtonRestore = document.querySelectorAll("[button-restore");
+if(listButtonRestore.length > 0){
+    listButtonRestore.forEach(button => {
+        button.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            const link = button.getAttribute("button-restore");
+            const confirmed = confirm("Bạn có chắc chắn muốn khôi phục không?");
+            if(confirmed){
+                fetch(link, {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.code == 200){
+                        window.location.reload();
+                    }
+                })
+            }
+        })
+    });
+}
+// Hết khôi phục
+
+// Xóa hoàn toàn bản ghi bên trang thùng rác
+const listButtonPermanent = document.querySelectorAll("[button-permanent");
+if(listButtonPermanent.length > 0){
+    listButtonPermanent.forEach(button => {
+        button.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            const link = button.getAttribute("button-permanent");
+            const confirmed = confirm("Bạn có chắc chắn muốn xóa vĩnh viễn không?");
+
+            if(confirmed){
+                fetch(link, {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.code == 200){
+                        window.location.reload();
+                    }
+                })
+            }
+        });
+    });
+}
+// Hết xóa hoàn toàn

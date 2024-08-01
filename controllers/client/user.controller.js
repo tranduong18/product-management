@@ -133,7 +133,6 @@ module.exports.forgotPasswordPost = async (req, res) => {
 // [GET] /user/password/otp
 module.exports.otpPassword = async (req, res) => {
     const email = req.query.email;
-    console.log(email);
 
     res.render("client/pages/user/otp-password", {
         pageTitle: "Xác thực OTP",
@@ -188,4 +187,11 @@ module.exports.resetPasswordPatch = async (req, res) => {
     req.flash("success", "Đổi mật khẩu thành công!");
 
     res.redirect("/");
+}
+
+// [GET] /user/profile
+module.exports.profile = async (req, res) => {
+    res.render("client/pages/user/profile", {
+        pageTitle: "Thông tin cá nhân",
+    });
 }

@@ -2,12 +2,8 @@ const mongoose = require("mongoose");
 const slug = require('mongoose-slug-updater');
 mongoose.plugin(slug);
 
-const productCategorySchema = new mongoose.Schema({
+const blogCategorySchema = new mongoose.Schema({
     title: String,
-    parent_id: {
-      type: String,
-      default: ""
-    },
     description: String,
     thumbnail: String,
     status: String,
@@ -28,6 +24,6 @@ const productCategorySchema = new mongoose.Schema({
     timestamps: true // Tự động thêm trường createdAt và updatedAt (https://mongoosejs.com/docs/timestamps.html)
   });
   
-  const ProductCategory = mongoose.model("ProductCategory", productCategorySchema, "products-category");
+  const BlogCategory = mongoose.model("BlogCategory", blogCategorySchema, "blogs-category");
   
-  module.exports = ProductCategory;
+  module.exports = BlogCategory;

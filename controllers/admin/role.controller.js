@@ -1,11 +1,42 @@
 const Role = require("../../models/role.model");
+const Account = require("../../models/account.model");
 const systemConfig = require("../../config/system");
+
+const moment = require('moment');
 
 // [GET] /admin/roles/
 module.exports.index = async (req, res) => {
     const records = await Role.find({
         deleted: false
     });
+
+    for(const item of records){
+        // Người tạo
+        if(item.createdBy){
+          const accountCreated = await Account.findOne({
+            _id: item.createdBy
+          });
+          item.createdByFullName = accountCreated.fullName;
+        }
+        else{
+          item.createdByFullName = "";
+        }
+    
+        item.createdAtFormat = moment(item.createdAt).format("DD/MM/YY HH:mm:ss");
+      
+        // Người cập nhật
+        if(item.updatedBy) {
+          const accountUpdated = await Account.findOne({
+            _id: item.updatedBy
+          });
+          item.updatedByFullName = accountUpdated.fullName;
+        } else {
+          item.updatedByFullName = "";
+        }
+    
+        item.updatedAtFormat = moment(item.updatedAt).format("DD/MM/YY HH:mm:ss");
+      }
+
     res.render("admin/pages/roles/index", {
         pageTitle: "Nhóm quyền",
         records: records
@@ -22,6 +53,8 @@ module.exports.create = async (req, res) => {
 // [POST] /admin/roles/create
 module.exports.createPost = async (req, res) => {
     if(res.locals.role.permissions.includes("roles_create")){
+        req.body.createdBy = res.locals.account.id;
+        
         const record = new Role(req.body);
         await record.save();
 
@@ -56,6 +89,8 @@ module.exports.editPatch = async (req, res) => {
         try {
             const id = req.params.id;
             const data = req.body;
+
+            data.updatedBy = res.locals.account.id;
     
             await Role.updateOne({
                 _id: id,
@@ -101,7 +136,8 @@ module.exports.deletePatch = async (req, res) => {
         await Role.updateOne({
             _id: id
         }, {
-            deleted: true
+            deleted: true,
+            deletedBy: res.locals.account.id
         });
 
         req.flash("success", "Xóa nhóm quyền thành công!");

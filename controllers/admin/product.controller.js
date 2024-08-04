@@ -61,8 +61,6 @@ module.exports.index = async (req, res) => {
     .skip(pagination.skip)
     .sort(sort);
     
-
-  // console.log(products);
   for(const item of products){
     // Người tạo
     if(item.createdBy){

@@ -1,5 +1,7 @@
 const ProductCategory = require("../../models/product-category.model");
+const Account = require("../../models/account.model");
 const systemConfig = require("../../config/system");
+const moment = require('moment');
 
 const createTreeHelper = require("../../helpers/createTree.helper");
 const paginationHelper = require("../../helpers/pagination.helper");
@@ -60,6 +62,32 @@ module.exports.index = async (req, res) => {
     .sort(sort);
 
     // console.log(records);
+    for(const item of records){
+      // Người tạo
+      if(item.createdBy){
+        const accountCreated = await Account.findOne({
+          _id: item.createdBy
+        });
+        item.createdByFullName = accountCreated.fullName;
+      }
+      else{
+        item.createdByFullName = "";
+      }
+  
+      item.createdAtFormat = moment(item.createdAt).format("DD/MM/YY HH:mm:ss");
+    
+      // Người cập nhật
+      if(item.updatedBy) {
+        const accountUpdated = await Account.findOne({
+          _id: item.updatedBy
+        });
+        item.updatedByFullName = accountUpdated.fullName;
+      } else {
+        item.updatedByFullName = "";
+      }
+  
+      item.updatedAtFormat = moment(item.updatedAt).format("DD/MM/YY HH:mm:ss");
+    }
 
     res.render("admin/pages/products-category/index", {
         pageTitle: "Danh mục sản phẩm",
@@ -93,6 +121,8 @@ module.exports.createPost = async (req, res) => {
       const countCagegory = await ProductCategory.countDocuments({});
       req.body.position = countCagegory + 1;
     }
+
+    req.body.createdBy = res.locals.account.id;
   
     const newCategory = new ProductCategory(req.body);
     await newCategory.save();
@@ -142,6 +172,8 @@ module.exports.editPatch = async (req, res) => {
         const countCagegory = await ProductCategory.countDocuments({});
         req.body.position = countCagegory + 1;
       }
+
+      req.body.updatedBy = res.locals.account.id;
   
       await ProductCategory.updateOne({
           _id: id,

@@ -38,3 +38,20 @@ block main
               .inner-price-old #{item.price}$
               .inner-discount -#{item.discountPercentage}%
 
+  .container.my-3
+    .row
+      .col-12
+        +box-head("Bài viết mới nhất")
+
+    .row
+      each item in blogsNew
+        .col-4.mb-3
+          .product-item
+            .inner-image
+              img(src=item.thumbnail, alt=item.title)
+            .inner-content
+              h3.inner-title
+                a(href=`/blogs/detail/${item.slug}`) #{item.title}
+              if(item.categoryName)
+                  .inner-price-new Danh mục : #{item.categoryName}
+

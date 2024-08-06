@@ -47,7 +47,7 @@ module.exports.category = async(req, res) => {
     }
 
     await getSubCategory(category.id);
-    console.log(allSubCategory);
+    // console.log(allSubCategory);
 
 
     const products = await Product.find({

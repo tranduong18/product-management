@@ -13,7 +13,11 @@ const orderSchema = new mongoose.Schema({
             discountPercentage: Number,
             quantity: Number
         }
-    ]
+    ],
+    status: String,
+    payment_method: String,
+    totalPrice: Number,
+    is_payment: Boolean
 }, {
   timestamps: true
 });

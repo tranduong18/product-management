@@ -17,7 +17,10 @@ const orderSchema = new mongoose.Schema({
     status: String,
     payment_method: String,
     totalPrice: Number,
-    is_payment: Boolean
+    is_payment: {
+        type: Boolean,
+        default: false
+    }
 }, {
   timestamps: true
 });

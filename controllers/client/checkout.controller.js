@@ -2,6 +2,10 @@ const Cart = require("../../models/cart.model");
 const Product = require("../../models/product.model");
 const Order = require("../../models/order.model");
 
+const crypto = require('crypto');
+const querystring = require('qs');
+const moment = require('moment');
+
 // [GET] /checkout/
 module.exports.index = async (req, res) => {
     const cartId = req.cookies.cartId;
@@ -33,11 +37,16 @@ module.exports.index = async (req, res) => {
 // [POST] /checkout/order
 module.exports.orderPost = async (req, res) => {
     const cartId = req.cookies.cartId;
-    const userInfo = req.body;
+    const userInfo = {
+        fullName: req.body.fullName,
+        phone: req.body.phone,
+        address: req.body.address
+    };
 
     const orderData = {
         userInfo: userInfo,
-        products: []
+        products: [],
+        payment_method: req.body.payment_method
     };
 
     const cart = await Cart.findOne({
@@ -55,24 +64,33 @@ module.exports.orderPost = async (req, res) => {
             discountPercentage: productInfo.discountPercentage,
             quantity: item.quantity
         });
-
-        await Product.updateOne({
-            _id: item.productId
-        }, {
-            stock: productInfo.stock - item.quantity
-        });
     }
+
+    let totalPrice = 0;
+
+    for(const item of orderData.products){
+        item.priceNew = (1 - item.discountPercentage/100) * item.price;
+        item.totalPrice = item.priceNew * item.quantity;
+        totalPrice += item.totalPrice;
+    }
+    
+    orderData.totalPrice = totalPrice;
 
     const order = new Order(orderData);
     await order.save();
 
-    await Cart.updateOne({
-        _id: cartId
-    }, {
-        products: []
-    });
+    // await Cart.updateOne({
+    //     _id: cartId
+    // }, {
+    //     products: []
+    // });
 
-    res.redirect(`/checkout/success/${order.id}`);
+    if(order.payment_method == "cash"){
+        res.redirect(`/checkout/success/${order.id}`);
+    }
+    else{
+        res.redirect(`/checkout/create_payment_url?orderId=${order.id}&amount=${order.totalPrice}`);
+    }
 }
 
 // [GET] /checkout/success/:orderId
@@ -95,11 +113,116 @@ module.exports.success = async (req, res) => {
         item.priceNew = (1 - item.discountPercentage/100) * item.price;
         item.totalPrice = item.priceNew * item.quantity;
         totalPrice += item.totalPrice;
+
+        await Product.updateOne({
+            _id: item.productId
+        }, {
+            stock: productInfo.stock - item.quantity
+        });
     }
+
+    await Order.updateOne({
+        _id: orderId
+    }, {
+        status: "Đang xử lý",
+        totalPrice: totalPrice,
+    });
 
     res.render("client/pages/checkout/success", {
         pageTitle: "Đặt hàng thành công",
         order: order,
         totalPrice: totalPrice
       });
+}
+
+const vnp_TmnCode = 'MSZQRPNN';
+const vnp_HashSecret = 'B42F3OGE9574A8368A7N31R6EI98TNDN';
+const vnp_Url = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
+const returnUrl = 'http://localhost:3000/checkout/vnpay_return';
+
+module.exports.create_url_payment = async (req, res) => {
+    let ipAddr = req.headers['x-forwarded-for'] ||
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress ||
+        req.connection.socket.remoteAddress;
+
+    let tmnCode = vnp_TmnCode;
+    let date = new Date();
+    const createDate = moment(date).format('YYYYMMDDHHmmss');
+    let secretKey = vnp_HashSecret;
+
+    const orderId = req.query.orderId;
+    let amount = parseFloat(req.query.amount);
+    
+    
+    const locale = 'vn';
+    const currCode = 'VND';
+    let vnp_Params = {};
+    vnp_Params['vnp_Version'] = '2.1.0';
+    vnp_Params['vnp_Command'] = 'pay';
+    vnp_Params['vnp_TmnCode'] = tmnCode;
+    vnp_Params['vnp_Locale'] = locale;
+    vnp_Params['vnp_CurrCode'] = currCode;
+    vnp_Params['vnp_TxnRef'] = orderId;
+    vnp_Params['vnp_OrderInfo'] = 'Thanh toan cho ma GD:' + orderId;
+    vnp_Params['vnp_OrderType'] = 'other';
+    vnp_Params['vnp_Amount'] = amount * 100000 ;
+    vnp_Params['vnp_IpAddr'] = ipAddr;
+    vnp_Params['vnp_ReturnUrl'] = returnUrl;
+    vnp_Params['vnp_CreateDate'] = createDate;
+
+    vnp_Params = sortObject(vnp_Params);
+
+    let signData = querystring.stringify(vnp_Params, { encode: false });
+    let hmac = crypto.createHmac('sha512', secretKey);
+    let signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+
+    vnp_Params['vnp_SecureHash'] = signed;
+    
+    const vnpUrl = vnp_Url + '?' + querystring.stringify(vnp_Params, { encode: false });
+
+    res.redirect(vnpUrl);
+}
+
+module.exports.vnpay_return = async (req, res) => {
+    let vnp_Params = req.query;
+    let secretKey = vnp_HashSecret;
+
+    let secureHash = vnp_Params['vnp_SecureHash'];
+
+    delete vnp_Params['vnp_SecureHash'];
+    delete vnp_Params['vnp_SecureHashType'];
+
+    vnp_Params = sortObject(vnp_Params);
+
+    let signData = querystring.stringify(vnp_Params, { encode: false });
+    let hmac = crypto.createHmac('sha512', secretKey);
+    let signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+
+    if (secureHash === signed) {
+        const vnp_ResponseCode = vnp_Params['vnp_ResponseCode'];
+        if (vnp_ResponseCode === '00') {
+            res.send('Thanh toán thành công');
+        } else {
+            res.send('Thanh toán không thành công');
+        }
+    } else {
+        res.send('Chữ ký không hợp lệ');
+    }
+}
+
+function sortObject(obj) {
+	let sorted = {};
+	let str = [];
+	let key;
+	for (key in obj){
+		if (obj.hasOwnProperty(key)) {
+		str.push(encodeURIComponent(key));
+		}
+	}
+	str.sort();
+    for (key = 0; key < str.length; key++) {
+        sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, "+");
+    }
+    return sorted;
 }

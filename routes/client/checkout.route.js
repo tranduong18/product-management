@@ -8,4 +8,8 @@ router.post("/order", controller.orderPost);
 
 router.get("/success/:orderId", controller.success);
 
+router.get('/create_payment_url', controller.create_url_payment);
+  
+router.get('/vnpay_return', controller.vnpay_return);
+  
 module.exports = router;

@@ -21,12 +21,13 @@ module.exports.index = async (req, res) => {
             const productInfo = await Product.findOne({
                 _id: product.productId
             }).select("title thumbnail slug price discountPercentage");
-            productInfo.priceNew = ((1 - productInfo.discountPercentage/100) * productInfo.price).toFixed(2);
+            productInfo.priceNew = (1 - productInfo.discountPercentage/100) * productInfo.price
             product.productInfo = productInfo;
-            product.totalPrice = (parseFloat(productInfo.priceNew * product.quantity)).toFixed(2);
-            cart.totalPrice += parseFloat(product.totalPrice);
+            product.totalPrice = productInfo.priceNew * product.quantity;
+            cart.totalPrice += (product.totalPrice);
         }        
     }
+    cart.totalPrice = parseFloat(cart.totalPrice.toFixed(2))
     
     res.render("client/pages/checkout/index", {
         pageTitle: "Đặt hàng",
@@ -79,11 +80,11 @@ module.exports.orderPost = async (req, res) => {
     const order = new Order(orderData);
     await order.save();
 
-    // await Cart.updateOne({
-    //     _id: cartId
-    // }, {
-    //     products: []
-    // });
+    await Cart.updateOne({
+        _id: cartId
+    }, {
+        products: []
+    });
 
     if(order.payment_method == "cash"){
         res.redirect(`/checkout/success/${order.id}`);
@@ -121,6 +122,16 @@ module.exports.success = async (req, res) => {
         });
     }
 
+    totalPrice = parseFloat(totalPrice.toFixed(2));
+
+    if(order.payment_method == "vnpay"){
+        await Order.updateOne({
+            _id: orderId
+        }, {
+            is_payment: true
+        })
+    }
+
     await Order.updateOne({
         _id: orderId
     }, {
@@ -135,10 +146,6 @@ module.exports.success = async (req, res) => {
       });
 }
 
-const vnp_TmnCode = 'MSZQRPNN';
-const vnp_HashSecret = 'B42F3OGE9574A8368A7N31R6EI98TNDN';
-const vnp_Url = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
-const returnUrl = 'http://localhost:3000/checkout/vnpay_return';
 
 module.exports.create_url_payment = async (req, res) => {
     let ipAddr = req.headers['x-forwarded-for'] ||
@@ -146,7 +153,11 @@ module.exports.create_url_payment = async (req, res) => {
         req.socket.remoteAddress ||
         req.connection.socket.remoteAddress;
 
-    let tmnCode = vnp_TmnCode;
+    const vnp_HashSecret = process.env.VNP_HASH_SECRET;
+    const vnp_Url = process.env.VNP_URL;
+    const returnUrl = process.env.VNP_RETURN_URL;
+
+    let tmnCode = process.env.VNP_TMN_CODE;
     let date = new Date();
     const createDate = moment(date).format('YYYYMMDDHHmmss');
     let secretKey = vnp_HashSecret;
@@ -166,7 +177,7 @@ module.exports.create_url_payment = async (req, res) => {
     vnp_Params['vnp_TxnRef'] = orderId;
     vnp_Params['vnp_OrderInfo'] = 'Thanh toan cho ma GD:' + orderId;
     vnp_Params['vnp_OrderType'] = 'other';
-    vnp_Params['vnp_Amount'] = amount * 100000 ;
+    vnp_Params['vnp_Amount'] = parseInt(amount * 100000) ;
     vnp_Params['vnp_IpAddr'] = ipAddr;
     vnp_Params['vnp_ReturnUrl'] = returnUrl;
     vnp_Params['vnp_CreateDate'] = createDate;
@@ -185,10 +196,13 @@ module.exports.create_url_payment = async (req, res) => {
 }
 
 module.exports.vnpay_return = async (req, res) => {
+    const vnp_HashSecret = process.env.VNP_HASH_SECRET;
     let vnp_Params = req.query;
     let secretKey = vnp_HashSecret;
 
     let secureHash = vnp_Params['vnp_SecureHash'];
+
+    const orderId = vnp_Params.vnp_TxnRef;
 
     delete vnp_Params['vnp_SecureHash'];
     delete vnp_Params['vnp_SecureHashType'];
@@ -202,7 +216,8 @@ module.exports.vnpay_return = async (req, res) => {
     if (secureHash === signed) {
         const vnp_ResponseCode = vnp_Params['vnp_ResponseCode'];
         if (vnp_ResponseCode === '00') {
-            res.send('Thanh toán thành công');
+            req.flash("success", "Thanh toán thành công!");
+            res.redirect(`/checkout/success/${orderId}`);
         } else {
             res.send('Thanh toán không thành công');
         }

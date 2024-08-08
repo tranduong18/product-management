@@ -9,6 +9,7 @@ const profileRoute = require("./profile.route");
 const settingRoute = require("./setting.route");
 const blogRoute = require("./blog.route");
 const blogCategoryRoute = require("./blog-category.route");
+const orderRoute = require("./order.route");
 const systemConfig = require("../../config/system");
 
 const authMiddleware = require("../../middlewares/admin/auth.middleware");
@@ -44,6 +45,12 @@ module.exports.index = (app) => {
         `${path}/blogs-category`, 
         authMiddleware.requireAuth,
         blogCategoryRoute
+    );
+
+    app.use(
+        `${path}/orders`, 
+        authMiddleware.requireAuth,
+        orderRoute
     );
 
     app.use(

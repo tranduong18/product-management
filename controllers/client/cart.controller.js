@@ -16,12 +16,13 @@ module.exports.index = async (req, res) => {
             const productInfo = await Product.findOne({
                 _id: product.productId
             }).select("title thumbnail slug price discountPercentage");
-            productInfo.priceNew = ((1 - productInfo.discountPercentage/100) * productInfo.price).toFixed(2);
+            productInfo.priceNew = (1 - productInfo.discountPercentage/100) * productInfo.price
             product.productInfo = productInfo;
-            product.totalPrice = (parseFloat(productInfo.priceNew * product.quantity)).toFixed(2);
-            cart.totalPrice += parseFloat(product.totalPrice);
+            product.totalPrice = productInfo.priceNew * product.quantity;
+            cart.totalPrice += (product.totalPrice);
         }        
     }
+    cart.totalPrice = parseFloat(cart.totalPrice.toFixed(2))
 
     res.render("client/pages/cart/index", {
         pageTitle: "Giỏ hàng",

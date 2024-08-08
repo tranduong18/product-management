@@ -377,3 +377,43 @@ if(listButtonPermanent.length > 0){
     });
 }
 // Hết xóa hoàn toàn
+
+// Select Order Status
+const orderStatusElements = document.querySelectorAll("[orderStatus]");
+
+if(orderStatusElements.length > 0){
+    orderStatusElements.forEach(orderStatus => {
+        orderStatus.addEventListener("change", (event) => {
+          event.preventDefault();
+      
+          const orderId = orderStatus.getAttribute('data-order-id');
+          const newStatus = orderStatus.value;
+      
+          const link = orderStatus.getAttribute("orderStatus");
+      
+          fetch(link, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              id: orderId,
+              status: newStatus
+            })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.code == 200) {
+              window.location.reload();
+            } else {
+              alert('Có lỗi xảy ra khi cập nhật trạng thái đơn hàng');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi cập nhật trạng thái đơn hàng');
+          });
+        });
+      });
+}
+// End Select Order Status

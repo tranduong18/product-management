@@ -79,3 +79,31 @@ module.exports.forgotPassword = async (req, res, next) => {
 
     next();
 }
+
+module.exports.changePass = async (req, res, next) => {
+    if(!req.body.password){
+        req.flash("error", "Mật khẩu không được để trống!");
+        res.redirect("back");
+        return;
+    }
+
+    if(!req.body.cpassword){
+        req.flash("error", "xác nhận mật khẩu không được để trống!");
+        res.redirect("back");
+        return;
+    }
+
+    if(req.body.password.length < 6){
+        req.flash("error", "Mật khẩu phải có ít nhất 6 ký tự!");
+        res.redirect("back");
+        return;
+    }
+
+    if(req.body.password != req.body.cpassword){
+        req.flash("error", "Mật khẩu và xác nhận mật khẩu phải trùng nhau!");
+        res.redirect("back");
+        return;
+    }
+
+    next();
+}

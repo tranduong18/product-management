@@ -195,3 +195,44 @@ module.exports.profile = async (req, res) => {
         pageTitle: "Thông tin cá nhân",
     });
 }
+
+// [GET] /user/profile/edit
+module.exports.editProfile = async (req, res) => {
+    res.render("client/pages/user/editProfile", {
+        pageTitle: "Sửa thông tin cá nhân",
+    });
+}
+
+// [PATCH] /user/profile/edit
+module.exports.editPatch = async (req, res) => {
+    await User.updateOne({
+        _id: res.locals.user.id
+    }, req.body);
+
+    req.flash("success", "Cập nhật thành công!");
+
+    res.redirect("back");
+}
+
+// [GET] /user/profile/changePassword
+module.exports.changePassword = async (req, res) => {
+    res.render("client/pages/user/change-password", {
+        pageTitle: "Đổi mật khẩu"
+    });
+}
+
+// [PATCH] /user/profile/changePassword
+module.exports.changePassPatch = async (req, res) => {
+    const password = req.body.password;
+    const tokenUser = req.cookies.tokenUser;
+
+    await User.updateOne({
+        tokenUser: tokenUser,
+    }, {
+        password: md5(password)
+    });
+
+    req.flash("success", "Đổi mật khẩu thành công!");
+
+    res.redirect("/user/profile");
+}

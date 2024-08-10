@@ -366,3 +366,18 @@
  }
 }
 /* End box-typing */
+
+/* Show password */
+.eye-icon {
+  font-size: 0.85rem; 
+  padding: 0;
+  margin: 0;
+}
+
+.showPass:hover,
+.showPass:focus {
+  background-color: transparent !important; 
+  color: #6c757d !important; 
+  box-shadow: none; 
+}
+/* End Show password */

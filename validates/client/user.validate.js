@@ -4,7 +4,6 @@ module.exports.register = async (req, res, next) => {
         res.redirect("back");
         return;
     }
-
     
     if(!req.body.email){
         req.flash("error", "Email không được để trống!");

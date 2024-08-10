@@ -20,13 +20,23 @@ block main
             )
           div(class="form-group")
             label(for="password") Mật khẩu
-            input(
-              type="password"
-              class="form-control"
-              id="password"
-              name="password"
-              required
-            )
+            div(class="input-group" passField)
+              input(
+                type="password"
+                class="form-control"
+                id="password"
+                name="password"
+                passInput
+                required
+              )
+              div(class="input-group-append")
+                button(
+                  type="button"
+                  class="btn btn-outline-secondary showPass"
+                  id="togglePassword"
+                  togglePassword
+                )
+                  i(class="fa fa-eye eye-icon")
           div(class="form-group")
             button(
               type="submit"

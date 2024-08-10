@@ -41,3 +41,25 @@ if(listInputQuantity){
     });
 }
 // Hết Cập nhật số lượng sản phẩm trong giỏ hàng
+
+// Toggle Password
+const passField = document.querySelector("[passField]");
+if(passField){
+    const passInput = passField.querySelector("[passInput]");
+    const buttonTogglePass = passField.querySelector("[togglePassword]");
+    const eyeIcon = passField.querySelector(".eye-icon");
+
+    buttonTogglePass.addEventListener("click", () => {
+        if(passInput.type === 'password'){
+            passInput.type = 'text';
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash');
+        }
+        else{
+            passInput.type = 'password';
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');   
+        }
+    })
+}
+// End Toggle Password

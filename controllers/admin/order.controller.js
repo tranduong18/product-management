@@ -29,43 +29,47 @@ module.exports.index = async(req, res) => {
 
 // [PATCH] /admin/orders/changeStatus/:id
 module.exports.changeStatus = async(req, res) => {
-    const id = req.params.id;
-    const newStatus = req.body.status;
-    
-    await Order.updateOne({
-        _id: id
-    }, {
-        status: newStatus
-    })
+    if(res.locals.role.permissions.includes("orders_edit")){
+        const id = req.params.id;
+        const newStatus = req.body.status;
+        
+        await Order.updateOne({
+            _id: id
+        }, {
+            status: newStatus
+        })
 
-    req.flash("success", "Cập nhật trạng thái thành công!");
+        req.flash("success", "Cập nhật trạng thái thành công!");
 
-    res.json({
-        code: 200
-    })
+        res.json({
+            code: 200
+        });
+    }
 }
 
 // [PATCH] /admin/orders/delete/:id
 module.exports.delete = async(req, res) => {
-    const id = req.params.id;
+    if(res.locals.role.permissions.includes("orders_delete")) {
+        const id = req.params.id;
 
-    await Order.updateOne({
-        _id: id
-    }, {
-        deleted: true
-    })
-    
-    req.flash("success", "Xóa thành công!");
+        await Order.updateOne({
+            _id: id
+        }, {
+            deleted: true
+        })
+        
+        req.flash("success", "Xóa thành công!");
 
-    res.json({
-        code: 200
-    })
+        res.json({
+            code: 200
+        });
+    } 
 }
 
 // [GET] /admin/orders/detail/:id
 module.exports.detail = async(req, res) => {
     const id = req.params.id;
-    
+
     const order = await Order.findOne({
         _id: id
     })

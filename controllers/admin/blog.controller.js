@@ -69,21 +69,23 @@ module.exports.create = async (req, res) => {
 
 // [POST] /admin/blogs/create
 module.exports.createPost = async (req, res) => {
-    if(req.body.position) {
-        req.body.position = parseInt(req.body.position);
-    } else {
-        const countBlog = await Blog.countDocuments({});
-        req.body.position = countBlog + 1;
-    }
-  
-    req.body.createdBy = res.locals.account.id;
+    if(res.locals.role.permissions.includes("blogs_create")) {
+        if(req.body.position) {
+            req.body.position = parseInt(req.body.position);
+        } else {
+            const countBlog = await Blog.countDocuments({});
+            req.body.position = countBlog + 1;
+        }
+      
+        req.body.createdBy = res.locals.account.id;
+        
+        const newBlog = new Blog(req.body);
+        await newBlog.save();
     
-    const newBlog = new Blog(req.body);
-    await newBlog.save();
-
-    req.flash("success", "Tạo mới bài viết thành công!");
-
-    res.redirect(`/${systemConfig.prefixAdmin}/blogs`);
+        req.flash("success", "Tạo mới bài viết thành công!");
+    
+        res.redirect(`/${systemConfig.prefixAdmin}/blogs`);
+    }
 }
 
 // [GET] /admin/blogs/edit/:id
@@ -113,35 +115,39 @@ module.exports.edit = async (req, res) => {
 
 // [PATCH] /admin/blogs/edit/:id
 module.exports.editPatch = async (req, res) => {
-    const id = req.params.id;
+    if(res.locals.role.permissions.includes("blogs_edit")) {
+        const id = req.params.id;
 
-    req.body.updatedBy = res.locals.account.id;
-
-    await Blog.updateOne({
-        _id: id
-    }, req.body);
-
-    req.flash("success", "Cập nhật thành công!");
-
-    res.redirect(`/${systemConfig.prefixAdmin}/blogs`);
+        req.body.updatedBy = res.locals.account.id;
+    
+        await Blog.updateOne({
+            _id: id
+        }, req.body);
+    
+        req.flash("success", "Cập nhật thành công!");
+    
+        res.redirect(`/${systemConfig.prefixAdmin}/blogs`);
+    }
 }
 
 // [PATCH] /admin/blogs/change-status/:statusChange/:id
 module.exports.changeStatus = async (req, res) => {
-    const {statusChange, id} = req.params;
+    if(res.locals.role.permissions.includes("blogs_edit")) {
+        const {statusChange, id} = req.params;
 
-    await Blog.updateOne({
-        _id: id
-    }, {
-        status: statusChange,
-        updatedBy: res.locals.account.id
-    })
-
-    req.flash("success", "Cập nhật trạng thái thành công!");
-
-    res.json({
-        code: 200
-    });
+        await Blog.updateOne({
+            _id: id
+        }, {
+            status: statusChange,
+            updatedBy: res.locals.account.id
+        })
+    
+        req.flash("success", "Cập nhật trạng thái thành công!");
+    
+        res.json({
+            code: 200
+        });
+    }
 }
 
 // [PATCH] /admin/blogs/detail/:id
@@ -174,24 +180,26 @@ module.exports.detail = async (req, res) => {
 
 // [PATCH] /admin/blogs/delete/:id
 module.exports.delete = async (req, res) => {
-    try {
-        const id = req.params.id;
-
-        await Blog.updateOne({
-            _id: id
-        }, {
-            deleted: true,
-            deletedBy: res.locals.account.id
-        });
-
-        req.flash("success", "Xóa thành công!");
-
-        res.json({
-            code: 200
-        });
-
-    } catch (error) {
-        res.redirect(`/${systemConfig.prefixAdmin}/blogs`);
+    if(res.locals.role.permissions.includes("blogs_delete")) {
+        try {
+            const id = req.params.id;
+    
+            await Blog.updateOne({
+                _id: id
+            }, {
+                deleted: true,
+                deletedBy: res.locals.account.id
+            });
+    
+            req.flash("success", "Xóa thành công!");
+    
+            res.json({
+                code: 200
+            });
+    
+        } catch (error) {
+            res.redirect(`/${systemConfig.prefixAdmin}/blogs`);
+        }
     }
 }
 

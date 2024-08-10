@@ -63,21 +63,23 @@ module.exports.create = async (req, res) => {
 
 // [POST] /admin/blogs-category/create
 module.exports.createPost = async (req, res) => {
-    if(req.body.position) {
-        req.body.position = parseInt(req.body.position);
-    } else {
-        const countBlogCategory = await BlogCategory.countDocuments({});
-        req.body.position = countBlogCategory + 1;
-    }
-  
-    req.body.createdBy = res.locals.account.id;
+    if(res.locals.role.permissions.includes("blogs-category_create")) {
+        if(req.body.position) {
+            req.body.position = parseInt(req.body.position);
+        } else {
+            const countBlogCategory = await BlogCategory.countDocuments({});
+            req.body.position = countBlogCategory + 1;
+        }
+      
+        req.body.createdBy = res.locals.account.id;
+        
+        const newBlogCategory = new BlogCategory(req.body);
+        await newBlogCategory.save();
     
-    const newBlogCategory = new BlogCategory(req.body);
-    await newBlogCategory.save();
-
-    req.flash("success", "Tạo mới danh mục thành công!");
-
-    res.redirect(`/${systemConfig.prefixAdmin}/blogs-category`);
+        req.flash("success", "Tạo mới danh mục thành công!");
+    
+        res.redirect(`/${systemConfig.prefixAdmin}/blogs-category`);       
+    }
 }
 
 // [GET] /admin/blogs-category/edit/:id
@@ -101,35 +103,39 @@ module.exports.edit = async (req, res) => {
 
 // [PATCH] /admin/blogs-category/edit/:id
 module.exports.editPatch = async (req, res) => {
-    const id = req.params.id;
+    if(res.locals.role.permissions.includes("blogs-category_edit")) {
+        const id = req.params.id;
 
-    req.body.updatedBy = res.locals.account.id;
-
-    await BlogCategory.updateOne({
-        _id: id
-    }, req.body);
-
-    req.flash("success", "Cập nhật thành công!");
-
-    res.redirect(`/${systemConfig.prefixAdmin}/blogs-category`);
+        req.body.updatedBy = res.locals.account.id;
+    
+        await BlogCategory.updateOne({
+            _id: id
+        }, req.body);
+    
+        req.flash("success", "Cập nhật thành công!");
+    
+        res.redirect(`/${systemConfig.prefixAdmin}/blogs-category`);
+    }
 }
 
 // [PATCH] /admin/blogs-category/change-status/:statusChange/:id
 module.exports.changeStatus = async (req, res) => {
-    const {statusChange, id} = req.params;
+    if(res.locals.role.permissions.includes("blogs-category_edit")) {
+        const {statusChange, id} = req.params;
 
-    await BlogCategory.updateOne({
-        _id: id
-    }, {
-        status: statusChange,
-        updatedBy: res.locals.account.id
-    })
-
-    req.flash("success", "Cập nhật trạng thái thành công!");
-
-    res.json({
-        code: 200
-    });
+        await BlogCategory.updateOne({
+            _id: id
+        }, {
+            status: statusChange,
+            updatedBy: res.locals.account.id
+        })
+    
+        req.flash("success", "Cập nhật trạng thái thành công!");
+    
+        res.json({
+            code: 200
+        });
+    }
 }
 
 // [PATCH] /admin/blogs-category/detail/:id
@@ -152,23 +158,25 @@ module.exports.detail = async (req, res) => {
 
 // [PATCH] /admin/blogs-category/delete/:id
 module.exports.delete = async (req, res) => {
-    try {
-        const id = req.params.id;
-
-        await BlogCategory.updateOne({
-            _id: id
-        }, {
-            deleted: true,
-            deletedBy: res.locals.account.id
-        });
-
-        req.flash("success", "Xóa thành công!");
-
-        res.json({
-            code: 200
-        });
-
-    } catch (error) {
-        res.redirect(`/${systemConfig.prefixAdmin}/blogs-category`);
+    if(res.locals.role.permissions.includes("blogs-category_delete")) {
+        try {
+            const id = req.params.id;
+    
+            await BlogCategory.updateOne({
+                _id: id
+            }, {
+                deleted: true,
+                deletedBy: res.locals.account.id
+            });
+    
+            req.flash("success", "Xóa thành công!");
+    
+            res.json({
+                code: 200
+            });
+    
+        } catch (error) {
+            res.redirect(`/${systemConfig.prefixAdmin}/blogs-category`);
+        }
     }
 }

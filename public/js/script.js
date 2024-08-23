@@ -1,3 +1,5 @@
+var socket = io();
+
 // show-alert
 const showAlert = document.querySelector("[show-alert]");
 if(showAlert){
